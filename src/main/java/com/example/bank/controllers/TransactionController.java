@@ -2,6 +2,7 @@ package com.example.bank.controllers;
 
 import com.example.bank.entities.Transaction;
 import com.example.bank.services.TransactionServiceImp;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,10 +13,12 @@ import java.util.List;
 public class TransactionController {
 
     private final TransactionServiceImp transactionServiceImp;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public TransactionController(TransactionServiceImp transactionServiceImp) {
+    public TransactionController(TransactionServiceImp transactionServiceImp, ModelMapper modelMapper) {
         this.transactionServiceImp = transactionServiceImp;
+        this.modelMapper = modelMapper;
     }
 
     @PostMapping("/transaction")
