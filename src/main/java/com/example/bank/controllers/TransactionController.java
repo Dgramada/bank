@@ -1,5 +1,6 @@
 package com.example.bank.controllers;
 
+import com.example.bank.dto.TransactionDTO;
 import com.example.bank.entities.Transaction;
 import com.example.bank.services.TransactionServiceImp;
 import org.modelmapper.ModelMapper;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class TransactionController {
@@ -22,24 +24,26 @@ public class TransactionController {
     }
 
     @PostMapping("/transaction")
-    public Transaction createTransaction(@RequestBody Transaction transaction) {
-        return transactionServiceImp.createTransaction(transaction);
+    public TransactionDTO createTransaction(@RequestBody Transaction transaction) {
+        return modelMapper.map(transactionServiceImp.createTransaction(transaction), TransactionDTO.class);
     }
 
     @PostMapping("/transaction_with_id")
-    public Transaction createTransactionWithId(@RequestParam(value = "recipientId") Long recipientId,
+    public TransactionDTO createTransactionWithId(@RequestParam(value = "recipientId") Long recipientId,
                                          @RequestParam(value = "senderId") Long senderId,
                                          @RequestParam(value = "amount") BigDecimal amount) {
-        return transactionServiceImp.createTransactionWithId(recipientId, senderId, amount);
+        return modelMapper.map(transactionServiceImp.createTransactionWithId(recipientId, senderId, amount), TransactionDTO.class);
     }
 
     @GetMapping("/transactionList")
-    public List<Transaction> getTransactionList() {
-        return transactionServiceImp.getTransactionList();
+    public List<TransactionDTO> getTransactionList() {
+        return transactionServiceImp.getTransactionList().parallelStream().
+                map(transaction -> modelMapper.map(transaction, TransactionDTO.class)).
+                collect(Collectors.toList());
     }
 
     @GetMapping("/transaction")
-    public Transaction getTransaction(@RequestParam(value = "id") Long id) {
-        return transactionServiceImp.getTransaction(id);
+    public TransactionDTO getTransaction(@RequestParam(value = "id") Long id) {
+        return modelMapper.map(transactionServiceImp.getTransaction(id), TransactionDTO.class);
     }
 }
