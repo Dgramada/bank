@@ -2,7 +2,6 @@ package com.example.bank.services;
 
 import com.example.bank.entities.Account;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public interface AccountService {
@@ -10,5 +9,4 @@ public interface AccountService {
     Account addAccount(Account account);
     List<Account> getAccountList();
     Account updateAccountInfo(Account account, String name, String email, String address);
-    void removeAccount(long id);
 }

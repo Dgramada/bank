@@ -34,14 +34,6 @@ public class AccountController {
                 .collect(Collectors.toList());
     }
 
-    //TODO use modelMapper for delete account
-    //TODO fix delete service because it does not work once a transaction is made for an account because of the relation
-    @DeleteMapping("/delete")
-    public String deleteAccountById(@RequestParam(value = "id") long id) {
-        accountService.removeAccount(id);
-        return "Account was deleted successfully";
-    }
-
     @PutMapping("/updateAccount")
     public AccountDTO updateAccount(@RequestBody Account account) {
         return modelMapper.map(accountService.updateAccountInfo(account, account.getName(), account.getEmail(), account.getAddress()), AccountDTO.class);

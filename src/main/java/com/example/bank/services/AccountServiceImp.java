@@ -41,8 +41,4 @@ public class AccountServiceImp implements AccountService {
         return accountDB.get();
     }
 
-    @Override
-    public void removeAccount(long accountId) {
-        accountRepository.deleteById(accountId);
-    }
 }
