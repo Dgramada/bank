@@ -9,7 +9,6 @@ public interface AccountService {
 
     Account addAccount(Account account);
     List<Account> getAccountList();
-    Account updateAccountInfo(Account account, String name, String email);
-    Account updateAccountBalance(Account account, long accountId, BigDecimal amount);
+    Account updateAccountInfo(Account account, String name, String email, String address);
     void removeAccount(long id);
 }

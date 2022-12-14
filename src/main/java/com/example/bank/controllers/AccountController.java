@@ -32,4 +32,9 @@ public class AccountController {
         accountService.removeAccount(id);
         return "Account was deleted successfully";
     }
+
+    @PutMapping("/updateAccount")
+    public Account updateAccount(@RequestBody Account account) {
+        return accountService.updateAccountInfo(account, account.getName(), account.getEmail(), account.getAddress());
+    }
 }

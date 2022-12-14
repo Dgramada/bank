@@ -5,8 +5,8 @@ import com.example.bank.entities.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AccountServiceImp implements AccountService {
@@ -29,13 +29,16 @@ public class AccountServiceImp implements AccountService {
     }
 
     @Override
-    public Account updateAccountInfo(Account account, String name, String email) {
-        return null;
-    }
-
-    @Override
-    public Account updateAccountBalance(Account account, long accountId, BigDecimal amount) {
-        return null;
+    public Account updateAccountInfo(Account account, String name, String email, String address) {
+        Optional<Account> accountDB = accountRepository.findById(account.getId());
+        if (accountDB.isEmpty()) {
+            throw new RuntimeException("Account is not present in the database");
+        }
+        accountDB.get().setName(name);
+        accountDB.get().setEmail(email);
+        accountDB.get().setAddress(address);
+        accountRepository.save(accountDB.get());
+        return accountDB.get();
     }
 
     @Override
