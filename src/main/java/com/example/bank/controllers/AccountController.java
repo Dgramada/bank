@@ -1,5 +1,6 @@
 package com.example.bank.controllers;
 
+import com.example.bank.dto.AccountDTO;
 import com.example.bank.entities.Account;
 import com.example.bank.services.AccountService;
 import org.modelmapper.ModelMapper;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class AccountController {
@@ -21,15 +23,19 @@ public class AccountController {
     }
 
     @PostMapping("/createAccount")
-    public Account createAccount(@RequestBody Account account) {
-        return accountService.addAccount(account);
+    public AccountDTO createAccount(@RequestBody Account account) {
+        return modelMapper.map(accountService.addAccount(account), AccountDTO.class);
     }
 
     @GetMapping("/accountList")
-    public List<Account> getAccountList() {
-        return accountService.getAccountList();
+    public List<AccountDTO> getAccountList() {
+        return accountService.getAccountList().parallelStream().
+                map(account -> modelMapper.map(account, AccountDTO.class))
+                .collect(Collectors.toList());
     }
 
+    //TODO use modelMapper for delete account
+    //TODO fix delete service because it does not work once a transaction is made for an account because of the relation
     @DeleteMapping("/delete")
     public String deleteAccountById(@RequestParam(value = "id") long id) {
         accountService.removeAccount(id);
@@ -37,7 +43,7 @@ public class AccountController {
     }
 
     @PutMapping("/updateAccount")
-    public Account updateAccount(@RequestBody Account account) {
-        return accountService.updateAccountInfo(account, account.getName(), account.getEmail(), account.getAddress());
+    public AccountDTO updateAccount(@RequestBody Account account) {
+        return modelMapper.map(accountService.updateAccountInfo(account, account.getName(), account.getEmail(), account.getAddress()), AccountDTO.class);
     }
 }
