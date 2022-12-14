@@ -1,74 +1,34 @@
 package com.example.bank.entities;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
 
 @Entity
 @Table(name = "transaction")
-public class Transaction {
+public class Transaction  extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long tid;
+    @Getter
+    @Setter
     private BigDecimal amount;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "recipient_id")
-    private Account recipient;
-    @OneToOne
+    @Getter
+    private Account recipientAccount;
+    @ManyToOne
     @JoinColumn(name = "sender_id")
-    private Account sender;
-    private Date transactionDate = new Date();
+    @Getter
+    private Account senderAccount;
 
-    public Transaction(Account sender, Account recipient, BigDecimal amount) {
+    public Transaction(Account senderAccount, Account recipientAccount, BigDecimal amount) {
         this.amount = amount;
-        this.recipient = recipient;
-        this.sender = sender;
+        this.recipientAccount = recipientAccount;
+        this.senderAccount = senderAccount;
     }
 
     public Transaction() {
 
     }
-
-    public Account getRecipient() {
-        return recipient;
-    }
-
-    public void setRecipient(Account recipient) {
-        this.recipient = recipient;
-    }
-
-    public Account getSender() {
-        return sender;
-    }
-
-    public void setSender(Account sender) {
-        this.sender = sender;
-    }
-
-    public Long getTid() {
-        return tid;
-    }
-
-    public void setTid(Long tid) {
-        this.tid = tid;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public Date getTransactionDate() {
-        return transactionDate;
-    }
-
-    public void setTransactionDate(Date transactionDate) {
-        this.transactionDate = transactionDate;
-    }
-
-
 }

@@ -1,4 +1,4 @@
-package com.example.bank.transaction;
+package com.example.bank.services;
 
 import com.example.bank.entities.Transaction;
 

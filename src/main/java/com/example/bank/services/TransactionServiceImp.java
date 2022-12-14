@@ -1,8 +1,9 @@
-package com.example.bank.transaction;
+package com.example.bank.services;
 
 import com.example.bank.entities.Account;
-import com.example.bank.account.AccountRepository;
+import com.example.bank.repositories.AccountRepository;
 import com.example.bank.entities.Transaction;
+import com.example.bank.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +29,8 @@ public class TransactionServiceImp implements TransactionService {
     @Transactional
     public Transaction createTransaction(Transaction transaction) {
         BigDecimal amount = transaction.getAmount();
-        Optional<Account> senderDatabase = accountRepository.findById(transaction.getSender().getAid());
-        Optional<Account> recipientDatabase = accountRepository.findById(transaction.getRecipient().getAid());
+        Optional<Account> senderDatabase = accountRepository.findById(transaction.getSenderAccount().getId());
+        Optional<Account> recipientDatabase = accountRepository.findById(transaction.getRecipientAccount().getId());
 
         if (!senderDatabase.isPresent()) {
             throw new IllegalStateException("Sender is not present in the database");
@@ -43,10 +44,10 @@ public class TransactionServiceImp implements TransactionService {
         if (amount.compareTo(sender.getBalance()) > 0) {
             throw new IllegalStateException("Insufficient balance in the account");
         }
-        sender.setBalance(transaction.getSender().getBalance().subtract(amount));
-        recipient.setBalance(transaction.getRecipient().getBalance().add(amount));
+        sender.setBalance(transaction.getSenderAccount().getBalance().subtract(amount));
+        recipient.setBalance(transaction.getRecipientAccount().getBalance().add(amount));
         transactionRepository.save(transaction);
-        Transaction transaction1 = new Transaction(transaction.getRecipient(), transaction.getSender(), amount.multiply(new BigDecimal(-1)));
+        Transaction transaction1 = new Transaction(transaction.getSenderAccount(), transaction.getSenderAccount(), amount.multiply(new BigDecimal(-1)));
         transactionRepository.save(transaction1);
         return transaction;
     }

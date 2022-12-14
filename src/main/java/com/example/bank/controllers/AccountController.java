@@ -1,6 +1,7 @@
-package com.example.bank.account;
+package com.example.bank.controllers;
 
 import com.example.bank.entities.Account;
+import com.example.bank.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

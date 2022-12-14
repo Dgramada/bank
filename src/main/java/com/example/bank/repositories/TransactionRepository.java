@@ -1,4 +1,4 @@
-package com.example.bank.transaction;
+package com.example.bank.repositories;
 
 import com.example.bank.entities.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
