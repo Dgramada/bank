@@ -24,6 +24,11 @@ public class AccountServiceImp implements AccountService {
     }
 
     @Override
+    public Account getAccount(Long id) {
+        return accountRepository.getReferenceById(id);
+    }
+
+    @Override
     public List<Account> getAccountList() {
         return accountRepository.findAll();
     }

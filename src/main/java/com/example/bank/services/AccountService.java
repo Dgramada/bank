@@ -7,6 +7,7 @@ import java.util.List;
 public interface AccountService {
 
     Account addAccount(Account account);
+    Account getAccount(Long id);
     List<Account> getAccountList();
     Account updateAccountInfo(Account account, String name, String email, String address);
 }
