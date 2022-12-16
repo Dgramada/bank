@@ -4,6 +4,7 @@ import com.example.bank.entities.Account;
 import com.example.bank.entities.Transaction;
 import com.example.bank.repositories.AccountRepository;
 import com.example.bank.repositories.TransactionRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,16 +33,16 @@ public class TransactionServiceImp implements TransactionService {
         Optional<Account> recipientDatabase = accountRepository.findById(transaction.getRecipientAccount().getId());
 
         if (senderDatabase.isEmpty()) {
-            throw new IllegalStateException("Sender is not present in the database");
+            throw new EntityNotFoundException("Sender is not present in the database");
         }
         Account sender = senderDatabase.get();
         if (recipientDatabase.isEmpty()) {
-            throw new IllegalStateException("Recipient is not present in the database");
+            throw new EntityNotFoundException("Recipient is not present in the database");
         }
         Account recipient = recipientDatabase.get();
 
         if (amount.compareTo(sender.getBalance()) > 0) {
-            throw new IllegalStateException("Insufficient balance in the account");
+            throw new IllegalArgumentException("Insufficient balance in the account");
         }
         sender.setBalance(transaction.getSenderAccount().getBalance().subtract(amount));
         recipient.setBalance(transaction.getRecipientAccount().getBalance().add(amount));
@@ -57,16 +58,16 @@ public class TransactionServiceImp implements TransactionService {
         Optional<Account> senderDatabase = accountRepository.findById(senderId);
         Optional<Account> recipientDatabase = accountRepository.findById(recipientId);
         if (senderDatabase.isEmpty()) {
-            throw new IllegalStateException("Sender is not present in the database");
+            throw new EntityNotFoundException("Sender is not present in the database");
         }
         Account sender = senderDatabase.get();
         if (recipientDatabase.isEmpty()) {
-            throw new IllegalStateException("Recipient is not present in the database");
+            throw new EntityNotFoundException("Recipient is not present in the database");
         }
         Account recipient = recipientDatabase.get();
 
         if (amount.compareTo(sender.getBalance()) > 0) {
-            throw new IllegalStateException("Insufficient balance in the account");
+            throw new IllegalArgumentException("Insufficient balance in the account");
         }
         sender.setBalance(sender.getBalance().subtract(amount));
         recipient.setBalance(recipient.getBalance().add(amount));
@@ -79,11 +80,17 @@ public class TransactionServiceImp implements TransactionService {
 
     @Override
     public Transaction getTransaction(Long tid) {
+        if (!transactionRepository.existsById(tid)) {
+            throw new EntityNotFoundException("Transaction with id = " + tid + " was not found in the database");
+        }
         return transactionRepository.getReferenceById(tid);
     }
 
     @Override
     public List<Transaction> getTransactionList() {
+        if (transactionRepository.findAll().isEmpty()) {
+            throw new EntityNotFoundException("No transactions are present in the database");
+        }
         return transactionRepository.findAll();
     }
 }
