@@ -2,7 +2,7 @@ package com.example.bank.controllers;
 
 import com.example.bank.dto.AccountDTO;
 import com.example.bank.entities.Account;
-//import com.example.bank.services.usingrepo.TransactionServiceImp;
+//import com.example.bank.services.usingrepo.AccountServiceImp;
 import com.example.bank.services.entitymanager.AccountServiceImp;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

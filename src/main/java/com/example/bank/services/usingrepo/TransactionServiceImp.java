@@ -30,16 +30,8 @@ public class TransactionServiceImp implements TransactionService {
     @Transactional
     public Transaction createTransaction(Transaction transaction) {
         BigDecimal amount = transaction.getAmount();
-        Optional<Account> senderDatabase = accountRepository.findById(transaction.getSenderAccount().getId());
-        Optional<Account> recipientDatabase = accountRepository.findById(transaction.getRecipientAccount().getId());
-        if (senderDatabase.isEmpty()) {
-            throw new EntityNotFoundException("Sender is not present in the database");
-        }
-        Account sender = senderDatabase.get();
-        if (recipientDatabase.isEmpty()) {
-            throw new EntityNotFoundException("Recipient is not present in the database");
-        }
-        Account recipient = recipientDatabase.get();
+        Account sender = getAccountFromDB(transaction.getSenderAccount().getId());
+        Account recipient = getAccountFromDB(transaction.getRecipientAccount().getId());
         if (amount.compareTo(sender.getBalance()) > 0) {
             throw new IllegalArgumentException("Insufficient balance in the account");
         }
@@ -48,17 +40,9 @@ public class TransactionServiceImp implements TransactionService {
 
     @Override
     @Transactional
-    public Transaction createTransactionWithId(Long recipientId, Long senderId, BigDecimal amount) {
-        Optional<Account> senderDatabase = accountRepository.findById(senderId);
-        Optional<Account> recipientDatabase = accountRepository.findById(recipientId);
-        if (senderDatabase.isEmpty()) {
-            throw new EntityNotFoundException("Sender is not present in the database");
-        }
-        Account sender = senderDatabase.get();
-        if (recipientDatabase.isEmpty()) {
-            throw new EntityNotFoundException("Recipient is not present in the database");
-        }
-        Account recipient = recipientDatabase.get();
+    public Transaction createTransactionWithId(Long senderId, Long recipientId, BigDecimal amount) {
+        Account sender = getAccountFromDB(senderId);
+        Account recipient = getAccountFromDB(recipientId);
         if (amount.compareTo(sender.getBalance()) > 0) {
             throw new IllegalArgumentException("Insufficient balance in the account: " +
                     "amount = " + amount + " > " + " sender = " + sender.getBalance());
@@ -94,5 +78,18 @@ public class TransactionServiceImp implements TransactionService {
     private void setBalancesAfterTransaction(Account sender, Account recipient, BigDecimal amount) {
         sender.setBalance(sender.getBalance().subtract(amount));
         recipient.setBalance(recipient.getBalance().add(amount));
+    }
+
+    /**
+     * Get the account from the database with accountId as id and throw exception if it is not present
+     * @param accountId the id of the account we want to return from the database
+     * @return returns an account entity from the database with id = accountId
+     */
+    private Account getAccountFromDB(Long accountId) {
+        Optional<Account> accountDatabase = accountRepository.findById(accountId);
+        if (accountDatabase.isEmpty()) {
+            throw new EntityNotFoundException("Sender is not present in the database");
+        }
+        return accountDatabase.get();
     }
 }

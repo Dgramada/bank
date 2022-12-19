@@ -76,6 +76,11 @@ public class TransactionServiceImp implements TransactionService {
         sender.setBalance(sender.getBalance().subtract(amount));
     }
 
+    /**
+     * Get the account from the database with accountId as id and throw exception if it is not present
+     * @param accountId the id of the account we want to return from the database
+     * @return returns an account entity from the database with id = accountId
+     */
     private Account getAccountFromDB(Long accountId) {
         Account account = entityManager.find(Account.class, accountId);
         if (Objects.isNull(account)) {
