@@ -17,7 +17,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    private ResponseEntity<ErrorModel> handleParameterIsInvalid(EntityNotFoundException ex) {
+    private ResponseEntity<ErrorModel> handleParameterIsInvalid(IllegalArgumentException ex) {
         ErrorModel error = new ErrorModel(HttpStatus.BAD_REQUEST, "Illegal argument", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

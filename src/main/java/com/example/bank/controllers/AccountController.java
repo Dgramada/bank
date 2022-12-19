@@ -2,7 +2,8 @@ package com.example.bank.controllers;
 
 import com.example.bank.dto.AccountDTO;
 import com.example.bank.entities.Account;
-import com.example.bank.services.AccountService;
+//import com.example.bank.services.usingrepo.TransactionServiceImp;
+import com.example.bank.services.entitymanager.AccountServiceImp;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,11 +14,11 @@ import java.util.stream.Collectors;
 @RestController
 public class AccountController {
 
-    private final AccountService accountService;
+    private final AccountServiceImp accountService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public AccountController(AccountService accountService, ModelMapper modelMapper) {
+    public AccountController(AccountServiceImp accountService, ModelMapper modelMapper) {
         this.accountService = accountService;
         this.modelMapper = modelMapper;
     }
@@ -60,7 +61,6 @@ public class AccountController {
      */
     @PutMapping("/updateAccount")
     public AccountDTO updateAccount(@RequestBody Account account) {
-        return modelMapper.map(accountService.updateAccountInfo(account, account.getName(),
-                account.getEmail(), account.getAddress()), AccountDTO.class);
+        return modelMapper.map(accountService.updateAccountInfo(account), AccountDTO.class);
     }
 }

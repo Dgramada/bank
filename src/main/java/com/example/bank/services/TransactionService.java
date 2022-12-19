@@ -8,7 +8,7 @@ import java.util.List;
 public interface TransactionService {
 
     Transaction createTransaction(Transaction transaction);
-    Transaction createTransactionWithId(Long recipientId, Long senderId, BigDecimal amount);
+    Transaction createTransactionWithId(Long senderId, Long recipientId, BigDecimal amount);
     Transaction getTransaction(Long tid);
     List<Transaction> getTransactionList();
 }
