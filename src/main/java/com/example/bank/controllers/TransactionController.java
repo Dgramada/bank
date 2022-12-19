@@ -6,6 +6,8 @@ import com.example.bank.entities.Transaction;
 import com.example.bank.services.entitymanager.TransactionServiceImp;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -30,8 +32,9 @@ public class TransactionController {
      * @return the newly created transaction entered through the parameter
      */
     @PostMapping("/transaction")
-    public TransactionDTO createTransaction(@RequestBody Transaction transaction) {
-        return modelMapper.map(transactionService.createTransaction(transaction), TransactionDTO.class);
+    public ResponseEntity<TransactionDTO> createTransaction(@RequestBody Transaction transaction) {
+        TransactionDTO responseDTO = modelMapper.map(transactionService.createTransaction(transaction), TransactionDTO.class);
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     /**
@@ -43,9 +46,11 @@ public class TransactionController {
      * @return the transaction between the recipient and the sender
      */
     @PostMapping("/transaction_with_id")
-    public TransactionDTO createTransactionWithId(@RequestParam(value = "senderId") Long senderId, @RequestParam(value = "recipientId") Long recipientId,
+    public ResponseEntity<TransactionDTO> createTransactionWithId(@RequestParam(value = "senderId") Long senderId,
+                                                  @RequestParam(value = "recipientId") Long recipientId,
                                                   @RequestParam(value = "amount") BigDecimal amount) {
-        return modelMapper.map(transactionService.createTransactionWithId(senderId, recipientId, amount), TransactionDTO.class);
+        TransactionDTO responseDTO = modelMapper.map(transactionService.createTransactionWithId(senderId, recipientId, amount), TransactionDTO.class);
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     /**
@@ -53,10 +58,11 @@ public class TransactionController {
      * @return a list with all the transactions as DTOs
      */
     @GetMapping("/transactionList")
-    public List<TransactionDTO> getTransactionList() {
-        return transactionService.getTransactionList().parallelStream().
+    public ResponseEntity<List<TransactionDTO>> getTransactionList() {
+        List<TransactionDTO> responseListDTO = transactionService.getTransactionList().parallelStream().
                 map(transaction -> modelMapper.map(transaction, TransactionDTO.class)).
                 collect(Collectors.toList());
+        return new ResponseEntity<>(responseListDTO, HttpStatus.OK);
     }
 
     /**
@@ -65,7 +71,8 @@ public class TransactionController {
      * @return the transaction as a DTO
      */
     @GetMapping("/transaction")
-    public TransactionDTO getTransaction(@RequestParam(value = "id") Long id) {
-        return modelMapper.map(transactionService.getTransaction(id), TransactionDTO.class);
+    public ResponseEntity<TransactionDTO> getTransaction(@RequestParam(value = "id") Long id) {
+        TransactionDTO responseDTO = modelMapper.map(transactionService.getTransaction(id), TransactionDTO.class);
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 }
