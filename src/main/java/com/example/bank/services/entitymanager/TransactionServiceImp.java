@@ -23,8 +23,8 @@ public class TransactionServiceImp implements TransactionService {
     @Override
     @Transactional
     public Transaction createTransaction(Transaction transaction) {
-        Account senderAccount = entityManager.find(Account.class, transaction.getSenderAccount().getId());
-        Account recipientAccount = entityManager.find(Account.class, transaction.getRecipientAccount().getId());
+        Account senderAccount = getAccountFromDB(transaction.getSenderAccount().getId());
+        Account recipientAccount = getAccountFromDB(transaction.getRecipientAccount().getId());
         if (transaction.getAmount().compareTo(senderAccount.getBalance()) > 0) {
             throw new IllegalArgumentException("Amount is larger than the sender's balance");
         }
@@ -34,14 +34,8 @@ public class TransactionServiceImp implements TransactionService {
     @Override
     @Transactional
     public Transaction createTransactionWithId(Long senderId, Long recipientId, BigDecimal amount) {
-        Account recipient = entityManager.find(Account.class, recipientId);
-        if (Objects.isNull(recipient)) {
-            throw new EntityNotFoundException("Account with id = " + recipientId + " was not found in the database");
-        }
-        Account sender = entityManager.find(Account.class, senderId);
-        if (Objects.isNull(sender)) {
-            throw new EntityNotFoundException("Account with id = " + senderId + " was not found in the database");
-        }
+        Account sender = getAccountFromDB(senderId);
+        Account recipient = getAccountFromDB(recipientId);
         if (amount.compareTo(sender.getBalance()) > 0) {
             throw new IllegalArgumentException("Amount is larger than the sender's balance");
         }
@@ -80,5 +74,13 @@ public class TransactionServiceImp implements TransactionService {
     private void setBalancesAfterTransaction(Account sender, Account recipient, BigDecimal amount) {
         recipient.setBalance(recipient.getBalance().add(amount));
         sender.setBalance(sender.getBalance().subtract(amount));
+    }
+
+    private Account getAccountFromDB(Long accountId) {
+        Account account = entityManager.find(Account.class, accountId);
+        if (Objects.isNull(account)) {
+            throw new EntityNotFoundException("Account with id = " + accountId + " was not found in the database");
+        }
+        return account;
     }
 }
