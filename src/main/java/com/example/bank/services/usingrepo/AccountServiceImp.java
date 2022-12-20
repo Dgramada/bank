@@ -7,7 +7,10 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,6 +25,10 @@ public class AccountServiceImp implements AccountService {
 
     @Override
     public Account addAccount(Account account) {
+        account.setDate(new Date());
+        if (Objects.isNull(account.getBalance())) {
+            account.setBalance(new BigDecimal(0));
+        }
         return accountRepository.save(account);
     }
 

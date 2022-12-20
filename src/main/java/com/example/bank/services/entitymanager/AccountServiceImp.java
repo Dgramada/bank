@@ -9,6 +9,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,6 +23,10 @@ public class AccountServiceImp implements AccountService {
     @Override
     @Transactional
     public Account addAccount(Account account) {
+        account.setDate(new Date());
+        if (Objects.isNull(account.getBalance())) {
+            account.setBalance(new BigDecimal(0));
+        }
         entityManager.persist(account);
         return entityManager.find(Account.class, account.getId());
     }

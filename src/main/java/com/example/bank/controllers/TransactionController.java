@@ -1,6 +1,7 @@
 package com.example.bank.controllers;
 
 import com.example.bank.dto.TransactionDTO;
+import com.example.bank.dto.TransferDTO;
 import com.example.bank.entities.Transaction;
 //import com.example.bank.services.usingrepo.TransactionServiceImp;
 import com.example.bank.services.entitymanager.TransactionServiceImp;
@@ -28,11 +29,12 @@ public class TransactionController {
 
     /**
      * Create a transaction by providing a body for the transaction object.
-     * @param transaction a transaction object entered through a body
+     * @param transactionDTO a transaction object entered through a body
      * @return the newly created transaction entered through the parameter
      */
     @PostMapping("/transaction")
-    public ResponseEntity<TransactionDTO> createTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<TransactionDTO> createTransaction(@RequestBody TransactionDTO transactionDTO) {
+        Transaction transaction = modelMapper.map(transactionDTO, Transaction.class);
         TransactionDTO responseDTO = modelMapper.map(transactionService.createTransaction(transaction), TransactionDTO.class);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
@@ -40,15 +42,14 @@ public class TransactionController {
     /**
      * Create a transaction using the ids of the sender and the recipient which are
      * entered through
-     * @param senderId the id of the sender account
-     * @param recipientId the id of the recipient account
-     * @param amount the amount that will be transferred between the accounts
+     * @param transferDTO the DTO corresponding to the information necessary for a transaction
      * @return the transaction between the recipient and the sender
      */
     @PostMapping("/transaction_with_id")
-    public ResponseEntity<TransactionDTO> createTransactionWithId(@RequestParam(value = "senderId") Long senderId,
-                                                  @RequestParam(value = "recipientId") Long recipientId,
-                                                  @RequestParam(value = "amount") BigDecimal amount) {
+    public ResponseEntity<TransactionDTO> createTransactionWithId(@RequestBody TransferDTO transferDTO) {
+        Long senderId = transferDTO.getSenderId();
+        Long recipientId = transferDTO.getRecipientId();
+        BigDecimal amount = transferDTO.getAmount();
         TransactionDTO responseDTO = modelMapper.map(transactionService.createTransactionWithId(senderId, recipientId, amount), TransactionDTO.class);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }

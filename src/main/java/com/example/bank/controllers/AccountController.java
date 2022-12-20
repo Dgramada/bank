@@ -27,19 +27,18 @@ public class AccountController {
 
     /**
      * Create an account with a request body.
-     *
-     * @param account the account that should be created
+     * @param accountDTO the account that should be created
      * @return the new account
      */
     @PostMapping("/createAccount")
-    public ResponseEntity<AccountDTO> createAccount(@RequestBody Account account) {
+    public ResponseEntity<AccountDTO> createAccount(@RequestBody AccountDTO accountDTO) {
+        Account account = modelMapper.map(accountDTO, Account.class);
         AccountDTO responseDTO = modelMapper.map(accountService.addAccount(account), AccountDTO.class);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     /**
      * GET the account with the specified id as a DTO
-     *
      * @param id the id of the account
      * @return an account DTO
      */
@@ -51,7 +50,6 @@ public class AccountController {
 
     /**
      * Get a DTO list containing all the accounts from the database.
-     *
      * @return list containing the accounts
      */
     @GetMapping("/accountList")
@@ -64,12 +62,12 @@ public class AccountController {
 
     /**
      * Update the mutable account information(name, email, address) for an account.
-     *
-     * @param account the account that is being updated
+     * @param accountDTO the account that is being updated
      * @return the updated account as a DTO object
      */
     @PutMapping("/updateAccount")
-    public ResponseEntity<AccountDTO> updateAccount(@RequestBody Account account) {
+    public ResponseEntity<AccountDTO> updateAccount(@RequestBody AccountDTO accountDTO) {
+        Account account = modelMapper.map(accountDTO, Account.class);
         AccountDTO responseDTO = modelMapper.map(accountService.updateAccountInfo(account), AccountDTO.class);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
