@@ -2,6 +2,7 @@ package com.example.bank.services.jdbcstuff;
 
 import com.example.bank.entities.Account;
 import com.example.bank.services.AccountService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public class AccountServiceImp implements AccountService {
     }
 
     @Override
-    public Account addAccount(Account account) {
+    public Account addAccount(@NotNull Account account) {
         account.setDate(new Date());
         java.sql.Date sqlDate = new java.sql.Date(account.getDate().getTime());
         account.setDate(new Date());

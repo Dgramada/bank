@@ -7,6 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,7 +23,7 @@ public class AccountServiceImp implements AccountService {
 
     @Override
     @Transactional
-    public Account addAccount(Account account) {
+    public Account addAccount(@NotNull Account account) {
         account.setDate(new Date());
         if (Objects.isNull(account.getBalance())) {
             account.setBalance(new BigDecimal(0));

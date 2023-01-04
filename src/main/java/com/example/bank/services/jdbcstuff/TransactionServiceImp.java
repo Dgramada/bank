@@ -35,7 +35,7 @@ public class TransactionServiceImp implements TransactionService {
     }
 
     @Override
-    public Transaction createTransaction(Transaction transaction) {
+    public Transaction createTransaction(@NotNull Transaction transaction) {
         transaction.setDate(new Date());
         java.sql.Date sqlDate = new java.sql.Date(transaction.getDate().getTime());
         Account recipient = getAccountFromDB(transaction.getRecipientAccount().getId());
@@ -67,7 +67,7 @@ public class TransactionServiceImp implements TransactionService {
     }
 
     @Override
-    public Transaction createTransactionWithId(Long senderId, Long recipientId, BigDecimal amount) {
+    public Transaction createTransactionWithId(Long senderId, Long recipientId, @NotNull BigDecimal amount) {
         Date date = new Date();
         java.sql.Date sqlDate = new java.sql.Date(date.getTime());
         String transactionQuery = "INSERT INTO transaction(date, amount, recipient_id, sender_id) VALUES(? , ?, ?, ?)";
@@ -139,7 +139,7 @@ public class TransactionServiceImp implements TransactionService {
     }
 
     @NotNull
-    private Account getAccountFromDB(Long id) {
+    private  Account getAccountFromDB(Long id) {
         String query = "SELECT id, date, name, balance, email, address FROM account WHERE id = ?";
         Account account = new Account();
         try (Connection connection = dataSource.getConnection();
