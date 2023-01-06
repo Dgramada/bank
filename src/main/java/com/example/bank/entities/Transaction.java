@@ -1,21 +1,20 @@
 package com.example.bank.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 
 @NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 @ToString
 @Getter
 @Setter
 @Entity
 @Table(name = "transaction")
 public class Transaction  extends BaseEntity {
-
     private BigDecimal amount;
     @ManyToOne
     @JoinColumn(name = "recipient_id")

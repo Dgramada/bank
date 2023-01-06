@@ -11,7 +11,6 @@ import java.util.Date;
 @Setter
 @ToString
 public class AccountDTO {
-
     private Long id;
     private Date date;
     private BigDecimal balance;

@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,6 +18,11 @@ import java.util.Objects;
 public class AccountServiceImp implements AccountService {
 
     private final DataSource dataSource;
+
+    @Autowired
+    public AccountServiceImp(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     static {
         try {
@@ -27,80 +32,66 @@ public class AccountServiceImp implements AccountService {
         }
     }
 
-    @Autowired
-    public AccountServiceImp(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
     @Override
     public Account addAccount(@NotNull Account account) {
-        account.setDate(new Date());
-        java.sql.Date sqlDate = new java.sql.Date(account.getDate().getTime());
-        account.setDate(new Date());
-        if (Objects.isNull(account.getBalance())) {
-            account.setBalance(new BigDecimal(0));
-        }
-        String query = "INSERT INTO account(name, address, date, email, balance) VALUES(?, ?, ?, ?, ?)";
-        String queryForLastId = "SELECT id FROM account ORDER BY id DESC LIMIT 1";
-        int param = 1;
+        String query = "SELECT * FROM account";
+        long id;
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query);
-             PreparedStatement id_statement = connection.prepareStatement(queryForLastId)) {
-            preparedStatement.setString(param++, account.getName());
-            preparedStatement.setString(param++, account.getAddress());
-            preparedStatement.setDate(param++, sqlDate);
-            preparedStatement.setString(param++, account.getEmail());
-            preparedStatement.setObject(param, account.getBalance());
-            preparedStatement.executeUpdate();
-            ResultSet rs = id_statement.executeQuery();
-            rs.next();
-            Long id = rs.getLong(1);
-            account.setId(id);
-        } catch (SQLException e) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+             ResultSet rs = preparedStatement.executeQuery()) {
+            rs.moveToInsertRow();
+            rs.updateString("name", account.getName());
+            rs.updateString("address", account.getAddress());
+            rs.updateString("email", account.getEmail());
+            if (Objects.nonNull(account.getBalance())) {
+                rs.updateBigDecimal("balance", account.getBalance());
+            }
+            rs.insertRow();
+            id = rs.getLong("id");
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return account;
+        return getAccount(id);
     }
 
     @Override
     public Account getAccount(Long id) {
-        String query = "SELECT * FROM account WHERE id = ?";
         Account account = new Account();
+        String query = "SELECT id, date, name, balance, email, address FROM account WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setLong(1, id);
-            ResultSet rs = preparedStatement.executeQuery();
-            while (rs.next()) {
-                account.setId(rs.getLong(1));
-                account.setDate(rs.getDate(2));
-                account.setAddress(rs.getString(3));
-                account.setBalance(rs.getBigDecimal(4));
-                account.setEmail(rs.getString(5));
-                account.setName(rs.getString(6));
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                if (rs.next()) {
+                    account = Account.builder().address(rs.getString("address")).
+                            email(rs.getString("email")).
+                            name(rs.getString("name")).
+                            balance(rs.getBigDecimal("balance")).
+                            id(rs.getLong("id")).
+                            date(rs.getDate("date")).build();
+                }
+                return account;
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return account;
     }
 
     @Override
     public List<Account> getAccountList() {
-        List<Account> accountList = new ArrayList<>();
-        String query = "SELECT * FROM account LIMIT 100";
+        List<Account> accountList = new LinkedList<>();
+        String query = "SELECT id, date, name, balance, email, address FROM account LIMIT 100";
         try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.executeQuery();
-            ResultSet rs = preparedStatement.getResultSet();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet rs = preparedStatement.executeQuery()) {
             while (rs.next()) {
-                Account account = new Account();
+                Account account = Account.builder().address(rs.getString("address")).
+                        email(rs.getString("email")).
+                        name(rs.getString("name")).
+                        balance(rs.getBigDecimal("balance")).
+                        id(rs.getLong("id")).
+                        date(rs.getDate("date")).build();
                 accountList.add(account);
-                account.setId(rs.getLong("id"));
-                account.setDate(rs.getDate("date"));
-                account.setAddress(rs.getString("address"));
-                account.setBalance(rs.getBigDecimal("balance"));
-                account.setEmail(rs.getString("email"));
-                account.setName(rs.getString("name"));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -110,26 +101,20 @@ public class AccountServiceImp implements AccountService {
 
     @Override
     public Account updateAccountInfo(Account account) {
-        String query = "UPDATE account SET name = ?, email = ?, address = ? WHERE id = ?";
-        String infoQuery = "SELECT * FROM account WHERE id = ?";
+        String query = "SELECT id, date, name, balance, email, address FROM account WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
-                PreparedStatement accountInfoStatement = connection.prepareStatement(infoQuery)) {
-            int param = 1;
-            preparedStatement.setString(param++, account.getName());
-            preparedStatement.setString(param++, account.getEmail());
-            preparedStatement.setString(param++, account.getAddress());
-            preparedStatement.setLong(param, account.getId());
-            preparedStatement.executeUpdate();
-            accountInfoStatement.setLong(1, account.getId());
-            ResultSet rs = accountInfoStatement.executeQuery();
-            while (rs.next()) {
-                account.setBalance(rs.getBigDecimal("balance"));
-                account.setDate(rs.getDate("date"));
+             PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            preparedStatement.setLong(1, account.getId());
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                rs.next();
+                rs.updateString("name", account.getName());
+                rs.updateString("address", account.getAddress());
+                rs.updateString("email", account.getEmail());
+                rs.updateRow();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return account;
+        return getAccount(account.getId());
     }
 }
