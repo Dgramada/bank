@@ -20,6 +20,7 @@ import java.util.List;
 public class TransactionServiceImp implements TransactionService {
 
     private final DataSource dataSource;
+    private final String SELECT_ALL_TRANSACTIONS_QUERY = "SELECT * FROM transaction";
 
     static {
         try {
@@ -36,25 +37,18 @@ public class TransactionServiceImp implements TransactionService {
 
     @Override
     public Transaction createTransaction(@NotNull Transaction transaction) {
-        String transactionQuery = "INSERT INTO transaction(amount, recipient_id, sender_id) VALUES(?, ?, ?)";
         try (Connection connection = dataSource.getConnection()) {
             Account recipient = getAccountFromDB(transaction.getRecipientAccount().getId(), connection);
             Account sender = getAccountFromDB(transaction.getSenderAccount().getId(), connection);
             if (transaction.getAmount().compareTo(sender.getBalance()) > 0) {
                 throw new IllegalArgumentException("Amount is larger than the sender's balance");
             }
-            try (PreparedStatement preparedStatementTransaction = connection.prepareStatement(transactionQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            try (PreparedStatement preparedStatementTransaction = connection.prepareStatement(SELECT_ALL_TRANSACTIONS_QUERY, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                 ResultSet rs = preparedStatementTransaction.executeQuery()) {
                 connection.setAutoCommit(false);
-                int param = 1;
-                preparedStatementTransaction.setBigDecimal(param++, transaction.getAmount());
-                preparedStatementTransaction.setLong(param++, recipient.getId());
-                preparedStatementTransaction.setLong(param, sender.getId());
-                preparedStatementTransaction.executeUpdate();
-                param = 1;
-                preparedStatementTransaction.setBigDecimal(param++, transaction.getAmount().negate());
-                preparedStatementTransaction.setLong(param++, sender.getId());
-                preparedStatementTransaction.setLong(param, sender.getId());
-                preparedStatementTransaction.executeUpdate();
+                insertRowValuesForTransaction(rs, sender.getId(), recipient.getId(), transaction.getAmount());
+                insertRowValuesForTransaction(rs, sender.getId(), recipient.getId(), transaction.getAmount());
+                rs.close();
                 updateAccountBalance(recipient.getId(), transaction.getAmount(), connection);
                 updateAccountBalance(sender.getId(), transaction.getAmount().negate(), connection);
                 connection.commit();
@@ -70,9 +64,8 @@ public class TransactionServiceImp implements TransactionService {
 
     @Override
     public Transaction createTransactionWithId(Long senderId, Long recipientId, @NotNull BigDecimal amount) {
-        String query = "SELECT * FROM transaction";
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_TRANSACTIONS_QUERY, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
              ResultSet rs = preparedStatement.executeQuery()) {
             if (amount.compareTo(getAccountFromDB(senderId, connection).getBalance()) > 0) {
                 throw new IllegalArgumentException("Amount is larger than the sender's balance");
@@ -97,10 +90,10 @@ public class TransactionServiceImp implements TransactionService {
 
     @Override
     public Transaction getTransaction(Long tid) {
-        String query = "SELECT * FROM transaction WHERE id = ?";
         Transaction transaction = new Transaction();
+        String SELECT_TRANSACTION_WITH_ID = "SELECT * FROM transaction WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_TRANSACTION_WITH_ID)) {
             preparedStatement.setLong(1, tid);
             ResultSet rs = preparedStatement.executeQuery();
             rs.next();
@@ -118,9 +111,8 @@ public class TransactionServiceImp implements TransactionService {
     @Override
     public List<Transaction> getTransactionList() {
         List<Transaction> transactionList = new ArrayList<>();
-        String query = "SELECT * FROM transaction";
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_TRANSACTIONS_QUERY)) {
             ResultSet rs = preparedStatement.executeQuery();
             while (rs.next()) {
                 Transaction transaction = new Transaction();
@@ -139,9 +131,9 @@ public class TransactionServiceImp implements TransactionService {
 
     @NotNull
     private  Account getAccountFromDB(Long id, Connection connection) {
-        String query = "SELECT id, date, name, balance, email, address FROM account WHERE id = ?";
         Account account = new Account();
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+        String SELECT_ACCOUNT_WITH_ID = "SELECT id, date, name, balance, email, address FROM account WHERE id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ACCOUNT_WITH_ID)) {
             preparedStatement.setLong(1, id);
             ResultSet rs = preparedStatement.executeQuery();
             rs.next();
