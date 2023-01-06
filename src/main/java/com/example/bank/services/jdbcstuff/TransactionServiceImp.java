@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,23 +70,18 @@ public class TransactionServiceImp implements TransactionService {
 
     @Override
     public Transaction createTransactionWithId(Long senderId, Long recipientId, @NotNull BigDecimal amount) {
-        String transactionQuery = "INSERT INTO transaction(amount, recipient_id, sender_id) VALUES(?, ?, ?)";
-        try (Connection connection = dataSource.getConnection()) {
+        String query = "SELECT * FROM transaction";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+             ResultSet rs = preparedStatement.executeQuery()) {
             if (amount.compareTo(getAccountFromDB(senderId, connection).getBalance()) > 0) {
                 throw new IllegalArgumentException("Amount is larger than the sender's balance");
             }
-            try (PreparedStatement createTransactionStatement = connection.prepareStatement(transactionQuery, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            try {
                 connection.setAutoCommit(false);
-                int param = 1;
-                createTransactionStatement.setBigDecimal(param++, amount);
-                createTransactionStatement.setLong(param++, recipientId);
-                createTransactionStatement.setLong(param, senderId);
-                createTransactionStatement.executeUpdate();
-                param = 1;
-                createTransactionStatement.setBigDecimal(param++, amount.negate());
-                createTransactionStatement.setLong(param++, senderId);
-                createTransactionStatement.setLong(param, senderId);
-                createTransactionStatement.executeUpdate();
+                insertRowValuesForTransaction(rs, senderId, recipientId, amount);
+                insertRowValuesForTransaction(rs, senderId, recipientId, amount);
+                rs.close();
                 updateAccountBalance(recipientId, amount, connection);
                 updateAccountBalance(senderId, amount.negate(), connection);
                 connection.commit();
@@ -190,5 +186,13 @@ public class TransactionServiceImp implements TransactionService {
             throw new RuntimeException(e);
         }
         return transaction;
+    }
+
+    private void insertRowValuesForTransaction(@NotNull ResultSet rs, Long senderId, Long recipientId, BigDecimal amount) throws SQLException {
+        rs.moveToInsertRow();
+        rs.updateLong("sender_id", senderId);
+        rs.updateLong("recipient_id", recipientId);
+        rs.updateBigDecimal("amount", amount);
+        rs.insertRow();
     }
 }
